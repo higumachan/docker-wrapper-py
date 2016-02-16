@@ -146,7 +146,7 @@ class Docker(object):
         temp_file = mktemp()
         result = self._cp_from_container(path, temp_file)
 
-        self.raise_from_process_result(result)
+        self.raise_from_process_result(result, path)
 
         result_string = ""
         with open(temp_file) as f:
@@ -215,7 +215,7 @@ class Docker(object):
         tempdir = mkdtemp()
         result = self._cp_from_container(path, tempdir)
 
-        self.raise_from_process_result(result)
+        self.raise_from_process_result(result, path)
 
         temp_path = os.path.join(tempdir, os.path.basename(path))
 
@@ -237,7 +237,7 @@ class Docker(object):
         path = self._get_working_directory(path)
         result = self.run('ls -dm */', path)
 
-        self.raise_from_process_result(result)
+        self.raise_from_process_result(result, path)
 
         for file_path in result.out.strip().split(', '):
             if include_trailing_slash:
@@ -281,10 +281,10 @@ class Docker(object):
         return self
 
     @classmethod
-    def raise_from_process_result(cls, result):
+    def raise_from_process_result(cls, result, path=None):
         if not result.succeeded:
             if errors.FILE_NOT_FOUND_PREDICATE.lower() in result.err.lower():
-                raise errors.DockerFileNotFoundError(result.err)
+                raise errors.DockerFileNotFoundError(path)
 
             raise errors.DockerWrapperBaseError(result.err)
 
