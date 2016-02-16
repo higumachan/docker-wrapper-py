@@ -126,6 +126,7 @@ class DockerManagerTests(unittest.TestCase):
 
     @mock.patch('docker.manager.execute')
     @mock.patch('docker.manager.Docker.run', return_value=unknown_error_result)
+    @mock.patch('docker.manager.Docker._cp', return_value=unknown_error_result)
     def test_read_file_unknown_error(self, mock_run, mock_execute):
         docker = Docker()
         docker.start()
@@ -139,6 +140,7 @@ class DockerManagerTests(unittest.TestCase):
 
     @mock.patch('docker.manager.execute')
     @mock.patch('docker.manager.Docker.run', return_value=unknown_error_result)
+    @mock.patch('docker.manager.Docker._cp', return_value=unknown_error_result)
     def test_list_files_unknown_error(self, mock_run, mock_execute):
         docker = Docker()
         docker.start()
@@ -243,7 +245,7 @@ class DockerInteractionTests(unittest.TestCase):
         self.assertTrue(content.endswith('\n'))
 
     def test_write_file_read_file(self):
-        path = 'testfile'
+        path = '/testfile'
         content = 'this is a nice file\n'
         self.docker.write_file(path, content)
         self.assertEqual(content, self.docker.read_file(path))
@@ -268,7 +270,7 @@ class DockerInteractionTests(unittest.TestCase):
         Docker(privilege=True).start()
 
     def test_write_file_append(self):
-        path = 'readme.txt'
+        path = '/readme.txt'
         old_content = 'hi\n'
         content = 'this is a readme\n'
         self.docker.run('echo "{0}" > {1}'.format(old_content, path))
@@ -278,7 +280,7 @@ class DockerInteractionTests(unittest.TestCase):
         self.assertEqual(written_content, '{0}\n{1}'.format(old_content, content))
 
     def test_write_file_no_append(self):
-        path = 'readme.txt'
+        path = '/readme.txt'
         old_content = 'hi'
         content = 'this is a readme\n'
         self.docker.run('echo "{0}" > {1}'.format(old_content, path))
@@ -288,7 +290,7 @@ class DockerInteractionTests(unittest.TestCase):
         self.assertEqual(written_content, content)
 
     def test_write_file_quotes(self):
-        path = 'readme.txt'
+        path = '/readme.txt'
         content = 'this is a "readme"\n'
 
         self.docker.write_file(path, content, append=False)
