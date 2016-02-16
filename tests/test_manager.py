@@ -173,10 +173,10 @@ class DockerInteractionTests(unittest.TestCase):
         self.docker.stop()
 
     def test_list_files(self):
-        self.docker.run("/test/")
+        self.docker.run("mkdir /test/")
         self.docker.run('touch /test/file1')
         self.docker.run('touch /test/file2')
-        self.assertEqual(self.docker.list_files('/test/'), ['file1', 'file2'])
+        self.assertEqual(self.docker.list_files('/test'), ['file1', 'file2'])
 
     def test_list_files_bad_path(self):
         path = '/bad/path'
