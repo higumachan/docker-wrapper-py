@@ -1,5 +1,6 @@
 import logging
 import uuid
+import functools
 from collections import OrderedDict
 from time import sleep
 
@@ -272,6 +273,7 @@ class Docker(object):
         """
 
         def activate(func):
+            @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 with Docker(*wrap_args, **wrap_kwargs) as docker:
                     kwargs['docker'] = docker
