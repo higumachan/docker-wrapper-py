@@ -262,8 +262,8 @@ class Docker(object):
         execute('docker rm {0}'.format(self.container_name))
         return self
 
-    @staticmethod
-    def wrap(*wrap_args, **wrap_kwargs):
+    @classmethod
+    def wrap(cls, *wrap_args, **wrap_kwargs):
         """
         Decorator that wraps the function call in a Docker with statement. It
         accepts the same arguments. This decorator adds a docker manager instance
