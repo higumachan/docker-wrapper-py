@@ -1,10 +1,12 @@
 import logging
 import uuid
 import functools
+import os
 from collections import OrderedDict
 from time import sleep
 from tempfile import (
-    mktemp
+    mktemp,
+    mkdtemp
 )
 
 from docker import errors
@@ -111,10 +113,9 @@ class Docker(object):
 
         return result
 
-    def _cp(self, src, dest, recursive=False):
+    def _cp(self, src, dest):
         result = execute(
-            "docker cp {} {} {}".format(
-                "-r" if recursive else "",
+            "docker cp {} {}".format(
                 src,
                 dest
             )
@@ -123,11 +124,11 @@ class Docker(object):
         return result
 
 
-    def _cp_to_container(self, src, dest, recursive=False):
-        return self._cp(src, "{}:{}".format(self.container_name, dest), recursive)
+    def _cp_to_container(self, src, dest):
+        return self._cp(src, "{}:{}".format(self.container_name, dest))
 
-    def _cp_from_container(self, src, dest, recursive=False):
-        return self._cp("{}:{}".format(self.container_name, src), dest, recursive)
+    def _cp_from_container(self, src, dest):
+        return self._cp("{}:{}".format(self.container_name, src), dest)
 
 
     def read_file(self, path):
@@ -212,12 +213,11 @@ class Docker(object):
 
         path = self._get_working_directory(path)
 
-        # `grep -v /$` matches everything that doesn't end with a
-        # trailing slash, i.e. only files since `ls -p` is used:
-        result = self.run('ls -p | grep -v /$', path)
+        tempdir = mkdtemp()
+        self._cp_from_container(path, tempdir)
+        temp_path = os.path.join(tempdir, os.path.basename(path))
 
-
-        return result.out.strip().split('\n')
+        return os.listdir(temp_path)
 
     def list_directories(self, path, include_trailing_slash=True):
         """
