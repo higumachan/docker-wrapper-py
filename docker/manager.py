@@ -284,7 +284,7 @@ class Docker(object):
     def raise_from_process_result(cls, result):
         if not result.succeeded:
             if errors.FILE_NOT_FOUND_PREDICATE.lower() in result.err.lower():
-                raise errors.DockerFileNotFoundError(result.command)
+                raise errors.DockerFileNotFoundError(result.err)
 
             raise errors.DockerWrapperBaseError(result.err)
 
