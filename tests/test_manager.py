@@ -127,7 +127,7 @@ class DockerManagerTests(unittest.TestCase):
     @mock.patch('docker.manager.execute')
     @mock.patch('docker.manager.Docker.run', return_value=unknown_error_result)
     @mock.patch('docker.manager.Docker._cp', return_value=unknown_error_result)
-    def test_read_file_unknown_error(self, mock_run, mock_execute):
+    def test_read_file_unknown_error(self, mock_run, mock_execute, mock_cp):
         docker = Docker()
         docker.start()
         path = 'test-file'
@@ -141,7 +141,7 @@ class DockerManagerTests(unittest.TestCase):
     @mock.patch('docker.manager.execute')
     @mock.patch('docker.manager.Docker.run', return_value=unknown_error_result)
     @mock.patch('docker.manager.Docker._cp', return_value=unknown_error_result)
-    def test_list_files_unknown_error(self, mock_run, mock_execute):
+    def test_list_files_unknown_error(self, mock_run, mock_execute, mock_cp):
         docker = Docker()
         docker.start()
         path = 'path'
@@ -225,7 +225,7 @@ class DockerInteractionTests(unittest.TestCase):
         self.assertEqual(self.docker.list_files('/builds'), ['readme.txt'])
 
     def test_read_file_with_content(self):
-        file_name = 'readme.txt'
+        file_name = '/readme.txt'
         file_content = 'this is a test file {0}\n'.format(randint(5000, 5500))
         self.docker.write_file(file_name, file_content)
         self.assertEqual(self.docker.read_file(file_name), file_content)
