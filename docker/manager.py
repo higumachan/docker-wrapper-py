@@ -114,12 +114,12 @@ class Docker(object):
         return result
 
     def _cp(self, src, dest):
-        result = execute(
-            "docker cp {} {}".format(
+        command = "docker cp {} {}".format(
                 src,
                 dest
-            )
         )
+        result = execute(command)
+        logger.debug(run=command)
 
         return result
 
