@@ -173,9 +173,10 @@ class DockerInteractionTests(unittest.TestCase):
         self.docker.stop()
 
     def test_list_files(self):
-        self.docker.run('touch file1')
-        self.docker.run('touch file2')
-        self.assertEqual(self.docker.list_files(''), ['file1', 'file2'])
+        self.docker.run("/test/")
+        self.docker.run('touch /test/file1')
+        self.docker.run('touch /test/file2')
+        self.assertEqual(self.docker.list_files('/test/'), ['file1', 'file2'])
 
     def test_list_files_bad_path(self):
         path = '/bad/path'
@@ -216,10 +217,10 @@ class DockerInteractionTests(unittest.TestCase):
         )
 
     def test_create_and_list_files_in_sub_directory(self):
-        self.docker.run('mkdir builds')
-        self.docker.run('touch builds/readme.txt')
+        self.docker.run('mkdir /builds')
+        self.docker.run('touch /builds/readme.txt')
 
-        self.assertEqual(self.docker.list_files('builds'), ['readme.txt'])
+        self.assertEqual(self.docker.list_files('/builds'), ['readme.txt'])
 
     def test_read_file_with_content(self):
         file_name = 'readme.txt'
