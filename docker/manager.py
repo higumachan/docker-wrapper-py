@@ -302,7 +302,7 @@ class Docker(object):
         def activate(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
-                with Docker(*wrap_args, **wrap_kwargs) as docker:
+                with cls(*wrap_args, **wrap_kwargs) as docker:
                     kwargs['docker'] = docker
                     return func(*args, **kwargs)
 
