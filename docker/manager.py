@@ -213,7 +213,10 @@ class Docker(object):
         path = self._get_working_directory(path)
 
         tempdir = mkdtemp()
-        self._cp_from_container(path, tempdir)
+        result = self._cp_from_container(path, tempdir)
+
+        self.raise_from_process_result(result)
+
         temp_path = os.path.join(tempdir, os.path.basename(path))
 
         return os.listdir(temp_path)
@@ -280,7 +283,7 @@ class Docker(object):
     @classmethod
     def raise_from_process_result(cls, result):
         if not result.succeeded:
-            if errors.FILE_NOT_FOUND_PREDICATE in result.err:
+            if errors.FILE_NOT_FOUND_PREDICATE.lower() in result.err.lower():
                 raise errors.DockerFileNotFoundError(result.command)
 
             raise errors.DockerWrapperBaseError(result.err)
