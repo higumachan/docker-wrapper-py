@@ -19,7 +19,6 @@ class ProcessResult(object):
             return None
         return self.return_code == 0
 
-
 def execute(cmd, stdin=''):
     result = ProcessResult(command=cmd)
 

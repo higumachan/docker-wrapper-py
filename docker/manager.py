@@ -3,6 +3,9 @@ import uuid
 import functools
 from collections import OrderedDict
 from time import sleep
+from tempfile import (
+    mktemp
+)
 
 from docker import errors
 from docker.helpers import execute
@@ -108,6 +111,25 @@ class Docker(object):
 
         return result
 
+    def _cp(self, src, dest, recursive=False):
+        result = execute(
+            "docker cp {} {} {}".format(
+                "-r" if recursive else "",
+                src,
+                dest
+            )
+        )
+
+        return result
+
+
+    def _cp_to_container(self, src, dest, recursive=False):
+        return self._cp(src, "{}:{}".format(self.container_name, dest), recursive)
+
+    def _cp_from_container(self, src, dest, recursive=False):
+        return self._cp("{}:{}".format(self.container_name, src), dest, recursive)
+
+
     def read_file(self, path):
         """
         Reads the content of the file on the given path. Returns None if the file does not exist.
@@ -120,15 +142,17 @@ class Docker(object):
         :raises DockerWrapperBaseError: For other errors
         """
         path = self._get_working_directory(path)
-        result = self.run('cat {0}'.format(path))
 
-        if not result.succeeded:
-            if errors.FILE_NOT_FOUND_PREDICATE in result.err:
-                raise errors.DockerFileNotFoundError(path)
+        temp_file = mktemp()
+        result = self._cp_from_container(path, temp_file)
 
-            raise errors.DockerWrapperBaseError(result.err)
+        self.raise_from_process_result(result)
 
-        return result.out
+        result_string = ""
+        with open(temp_file) as f:
+            result_string = f.read()
+
+        return result_string
 
     def write_file(self, path, content, append=False):
         """
@@ -156,6 +180,10 @@ class Docker(object):
         :type path: str
         :rtype: bool
         """
+
+        temp_file = mktemp()
+        result = self._cp_from_container(path, temp_file)
+
         path = self._get_working_directory(path)
         return self.run('test -f {0}'.format(path)).return_code == 0
 
@@ -188,11 +216,6 @@ class Docker(object):
         # trailing slash, i.e. only files since `ls -p` is used:
         result = self.run('ls -p | grep -v /$', path)
 
-        if not result.succeeded:
-            if errors.FILE_NOT_FOUND_PREDICATE in result.err:
-                raise errors.DockerFileNotFoundError(path)
-
-            raise errors.DockerWrapperBaseError(result.err)
 
         return result.out.strip().split('\n')
 
@@ -212,11 +235,7 @@ class Docker(object):
         path = self._get_working_directory(path)
         result = self.run('ls -dm */', path)
 
-        if not result.succeeded:
-            if errors.FILE_NOT_FOUND_PREDICATE in result.err:
-                raise errors.DockerFileNotFoundError(path)
-
-            raise errors.DockerWrapperBaseError(result.err)
+        self.raise_from_process_result(result)
 
         for file_path in result.out.strip().split(', '):
             if include_trailing_slash:
@@ -244,10 +263,7 @@ class Docker(object):
             self.timeout
         ))
 
-        if not result.succeeded:
-            raise errors.DockerUnavailableError(
-                'Starting the docker container failed.\n{0}'.format(result.err)
-            )
+        self.raise_from_process_result(result)
 
         return self
 
@@ -261,6 +277,15 @@ class Docker(object):
         execute('docker kill {0}'.format(self.container_name))
         execute('docker rm {0}'.format(self.container_name))
         return self
+
+    @classmethod
+    def raise_from_process_result(cls, result):
+        if not result.succeeded:
+            if errors.FILE_NOT_FOUND_PREDICATE in result.err:
+                raise errors.DockerFileNotFoundError(result.command)
+
+            raise errors.DockerWrapperBaseError(result.err)
+
 
     @classmethod
     def wrap(cls, *wrap_args, **wrap_kwargs):
