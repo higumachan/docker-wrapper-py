@@ -176,7 +176,7 @@ class DockerInteractionTests(unittest.TestCase):
         self.docker.run("mkdir /test/")
         self.docker.run('touch /test/file1')
         self.docker.run('touch /test/file2')
-        self.assertEqual(self.docker.list_files('/test'), ['file1', 'file2'])
+        self.assertEqual(set(self.docker.list_files('/test')), set(['file1', 'file2']))
 
     def test_list_files_bad_path(self):
         path = '/bad/path'
@@ -193,8 +193,8 @@ class DockerInteractionTests(unittest.TestCase):
         self.docker.run('mkdir dir2')
         self.docker.run('mkdir dir3')
         self.assertEqual(
-            self.docker.list_directories('', include_trailing_slash=False),
-            ['dir1', 'dir2', 'dir3']
+            set(self.docker.list_directories('', include_trailing_slash=False)),
+            set(['dir1', 'dir2', 'dir3'])
         )
 
     def test_list_directories_trailing_slash(self):
@@ -203,8 +203,8 @@ class DockerInteractionTests(unittest.TestCase):
         self.docker.run('mkdir dir2')
         self.docker.run('mkdir dir3')
         self.assertEqual(
-            self.docker.list_directories('', include_trailing_slash=True),
-            ['dir1/', 'dir2/', 'dir3/']
+            set(self.docker.list_directories('', include_trailing_slash=True)),
+            set(['dir1/', 'dir2/', 'dir3/'])
         )
 
     def test_list_directories_bad_path(self):
