@@ -119,7 +119,6 @@ class Docker(object):
                 dest
         )
         result = execute(command)
-        logger.debug(run=command)
 
         return result
 
